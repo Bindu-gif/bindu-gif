@@ -1,9 +1,3 @@
-
-Sure! Here's the **full single-block version** of your `README.md` content. Just copy and paste it directly into your GitHub repository:
-
----
-
-```markdown
 # 🏥 Public Health Disease Surveillance Architecture Development Project
 
 This project demonstrates a simulated public health emergency architecture for real-time disease surveillance using HL7 FHIR, OpenEMR, and HAPI-FHIR in a multi-hospital virtualized environment.
