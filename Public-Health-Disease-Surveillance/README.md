@@ -1,79 +1,90 @@
+
 # 🏥 Public Health Disease Surveillance Architecture Development Project
 
-This project demonstrates a simulated public health emergency architecture for real-time disease surveillance using HL7 FHIR, OpenEMR, and HAPI-FHIR in a multi-hospital virtualized environment.
+This project simulates a real-world public health emergency surveillance system using **OpenEMR**, **FHIR standards**, **HAPI-FHIR server**, and virtualized Ubuntu environments. It demonstrates how health data can be captured at multiple hospitals, routed through a regional Health Information Exchange (UPHIE), and used by state and public health entities for **real-time outbreak detection and monitoring**.
+
+> 📌 Final Project for SAT 5424 – Population and Public Health Informatics  
+> 🎓 Michigan Technological University | April 2025
 
 ---
 
-## 📌 Project Overview
+## 🧭 Project Goals
 
-The system was designed to enable seamless and secure interoperability among four hospitals and a Health Information Exchange (UPHIE). It focuses on detecting and monitoring communicable diseases in the Upper Peninsula of Michigan.
-
----
-
-## 🖼️ Architecture Diagram
-
-> ![Architecture Overview](./screenshots/architecture-diagram.png)
-
-The architecture includes:
-- **4 Hospital VMs** (Aspirus, Portage, BCMH, MGH)
-- Each hospital uses **OpenEMR** with synthetic FHIR data
-- A central **UPHIE intercept point (HAPI-FHIR Server)** receives FHIR bundles
-- Data forwarded to:
-  - State of Michigan HIE Proxy
-  - MiHIN Shared Services
-  - Google Looker Dashboard
-  - WUPHD (Public Health Dashboard)
+- Implement a **multi-hospital health data flow system** using open-source EHRs (OpenEMR)
+- Enable secure data interoperability using **HL7 FHIR standards**
+- Route synthetic health data to a regional **HAPI-FHIR intercept point**
+- Visualize data via **dashboards (e.g., Google Looker)**
+- Simulate real-world public health architecture for early disease surveillance
 
 ---
 
-## ⚙️ Technology Stack
+## 🖼️ System Architecture Diagram
 
-| Component                  | Details                                |
-|---------------------------|----------------------------------------|
-| OS                        | Ubuntu Server (20.04)                  |
-| EHR System                | OpenEMR                                |
-| Interoperability          | HL7 FHIR                               |
-| API Testing               | Postman                                |
-| Visualization             | Google Looker                          |
-| HIE Server                | HAPI FHIR (Port 8090)                  |
-| Security Tools            | UFW Firewall, Apache Config Headers    |
+> 📌 This diagram visualizes the simulated public health ecosystem connecting hospitals, UPHIE, and analytics/reporting tools.
+
+![Architecture Diagram](./screenshots/architecture-diagram.png)
 
 ---
 
-## 🛠️ Setup & Configuration
+## 🏗️ System Components
 
-### ✅ Ubuntu Server Setup
+| Layer                          | Component                            | Purpose                                                                 |
+|-------------------------------|--------------------------------------|-------------------------------------------------------------------------|
+| 🏥 Hospitals (x4)              | OpenEMR on Ubuntu                    | Generates patient-level synthetic health records in FHIR format        |
+| 🔁 Middleware (UPHIE)         | HAPI-FHIR Server (port 8090)         | Receives FHIR bundles, acts as data exchange hub                       |
+| 📊 Visualization               | Google Looker Dashboard              | Displays anonymized health trends to WUPHD and public stakeholders     |
+| 🛡️ State Connectivity         | MiHIN & Michigan State HIE Proxy     | Simulates health data submission to statewide authorities              |
+
+---
+
+## ⚙️ Technical Stack
+
+| Area                 | Technology Used                      |
+|----------------------|--------------------------------------|
+| Operating System     | Ubuntu 20.04 Server (VirtualBox VMs) |
+| EHR Platform         | OpenEMR                              |
+| Interoperability     | HL7 FHIR v4.0.1                      |
+| API Server           | HAPI-FHIR (localhost:8090/fhir)      |
+| Network Security     | UFW Firewall, Apache Hardening       |
+| API Testing          | Postman                              |
+| Data Source          | Synthetic FHIR data from Synthea     |
+
+---
+
+## 🛠️ System Configuration Details
+
+### 🔧 Ubuntu Update & Security Setup
+
 ```bash
 sudo apt-get update && sudo apt-get upgrade
 sudo apt-get install unattended-upgrades
 sudo dpkg-reconfigure --priority=low unattended-upgrades
 ```
 
-### 🔥 Firewall Configuration (UFW)
+### 🔥 UFW Firewall Rules
+
 ```bash
-sudo apt-get install ufw
 sudo ufw allow http
 sudo ufw allow https
 sudo ufw allow ssh
 sudo ufw enable
 ```
 
-### 🧱 Apache Security Hardening
+### 🧱 Apache Security Headers
+
 ```bash
 sudo nano /etc/apache2/conf-available/security.conf
 ```
 
-Add headers:
+Set headers:
 ```
 ServerTokens Prod
-ServerSignature Off
-TraceEnable Off
 Header set X-Content-Type-Options: "nosniff"
 Header set X-Frame-Options: "sameorigin"
 Header set X-XSS-Protection: "1; mode=block"
 ```
 
-Enable config:
+Restart Apache:
 ```bash
 sudo a2enconf security
 sudo systemctl restart apache2
@@ -81,22 +92,19 @@ sudo systemctl restart apache2
 
 ---
 
-## 🧪 API Interactions via Postman
+## 🧪 API Example via Postman
 
-FHIR resource tested:
+### ➕ Creating a Practitioner Resource
+
 ```http
 POST http://localhost:8090/fhir/Practitioner
 ```
 
-Sample JSON body:
+**Payload**:
 ```json
 {
   "resourceType": "Practitioner",
   "id": "1",
-  "meta": {
-    "versionId": "1",
-    "lastUpdated": "2025-03-25T19:42:11.552+00:00"
-  },
   "identifier": [{
     "type": {"text": "NPI"},
     "value": "CWI234563"
@@ -104,54 +112,80 @@ Sample JSON body:
 }
 ```
 
-Response:
+**Response**:
 ```
 201 Created ✅
 ```
 
 ---
 
-## 🔐 Security Concerns Identified
+## 🔐 Cybersecurity Considerations
 
-Despite hardening, OpenEMR is still susceptible to:
+Even with hardened Apache and firewalls, OpenEMR remains exposed to:
+
 - **SQL Injection (SQLi)**
 - **Cross-Site Scripting (XSS)**
 - **Cross-Site Request Forgery (CSRF)**
-- **Privilege Escalation**
-- **Insider Threats**
+- **API vulnerabilities**
+- **Insider threats** without strict role-based access controls
 
 ---
 
-## 🙋‍♀️ Personal Contributions
+## 🖥️ VM Configuration & Screenshots
 
-- Installed OpenEMR on 4 VMs
-- Enabled FHIR data generation
-- Configured security settings (firewall & Apache)
-- Deployed Postman APIs to test HAPI-FHIR server
-- Managed data flow simulation to UPHIE and Looker
+The following screenshots demonstrate real-time configuration and testing from the four virtual machines:
 
----
+### 🏥 Hospital VM 1 – Ubuntu Server Installation
+![VM 1](./screenshots/vm-diagram-1.png)
 
-## 📂 Files Included
+### 🏥 Hospital VM 2 – OpenEMR Login and Access
+![VM 2](./screenshots/vm-diagram-2.png)
 
-- `/screenshots/` – VM and Postman output
-- `architecture-diagram.png`
-- `openemr_install_guide.md`
-- `postman_test_result.json`
-- `README.md` (this file)
+### 🔐 Firewall and Apache Security Configuration
+![Firewall](./screenshots/vm-diagram-3.png)
+
+### 🧪 FHIR API Testing using Postman
+![Postman](./screenshots/vm-diagram-4.png)
 
 ---
 
-## 📅 Timeline
+## 📊 Project Outcome
 
-- Configuration & Testing: Feb–Mar 2025  
-- Final Submission: April 18, 2025
+- Simulated a **regional EHR data ecosystem**
+- Successfully routed data from **4 hospital VMs → UPHIE → dashboards**
+- Demonstrated use of **FHIR APIs for public health data sharing**
+- Applied **network and application-level security measures**
 
 ---
 
-## 📬 Contact
+## 🙋‍♀️ Personal Contribution – Bindu Mamillapalli
 
-**Bindu Mamillapalli**  
-Master's in Health Informatics  
-Michigan Technological University
-``
+- Installed and configured OpenEMR on 4 virtual machines
+- Secured Ubuntu servers with firewall & Apache headers
+- Enabled FHIR output and tested endpoints via Postman
+- Managed architecture setup, testing, and documentation
+- Ensured alignment with public health surveillance goals
+
+---
+
+## 📁 Files Included in Repo
+
+| File/Folder                     | Description                                        |
+|--------------------------------|----------------------------------------------------|
+| `/screenshots/architecture-diagram.png` | High-resolution architecture diagram       |
+| `/screenshots/vm-diagram-1.png` to `vm-diagram-4.png` | Configuration & testing screenshots |
+| `README.md`                    | Full documentation of this project                |
+
+---
+
+## 🎓 Course Info
+
+**Course**: SAT 5424 – Population and Public Health Informatics  
+**Institution**: Michigan Technological University  
+**Final Submission**: April 18, 2025
+
+---
+
+## ✅ Final Takeaway
+
+> This project demonstrates how low-cost, open-source solutions can simulate powerful **public health informatics infrastructure** for real-time disease surveillance. It integrates modern data standards (FHIR), robust APIs (HAPI-FHIR), and strong cybersecurity configurations — making it a valuable prototype for local health departments and global health systems alike.
